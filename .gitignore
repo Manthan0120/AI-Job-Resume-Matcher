@@ -1,0 +1,29 @@
+# Environment variables (contains sensitive data)
+.env
+
+# Python cache files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+env/
+ENV/
+
+# Temporary files
+temp_resumes/
+
+# Database files (if they contain sensitive data)
+chroma_db/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Operating system files
+.DS_Store
+Thumbs.db
