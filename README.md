@@ -57,6 +57,7 @@ streamlit run app.py
 - Upload resume files (PDF, DOCX, TXT)
 - Upload job descriptions as CSV file
 - Process and store documents in vector database
+  <img width="1854" height="936" alt="Screenshot 2025-08-02 155451" src="https://github.com/user-attachments/assets/34d9d400-2893-4551-9aaf-475d6081aed7" />
 
 ### 2. Resume → Jobs Matching
 - Paste resume content or select processed resume
@@ -71,16 +72,19 @@ streamlit run app.py
 - Input job description
 - Find best candidate matches
 - Analyze candidate strengths and development areas
+<img width="1844" height="937" alt="Screenshot 2025-08-02 155753" src="https://github.com/user-attachments/assets/ae4fc438-139d-42ab-98ad-6cb84ce3f96b" />
 
 ### 4. Chat Interface
 - Ask questions about matching results
 - Get AI-powered insights and recommendations
 - Interactive conversation about career advice
+<img width="1856" height="931" alt="Screenshot 2025-08-02 165837" src="https://github.com/user-attachments/assets/6942a4a6-90c6-4e24-8206-52ce46f271d9" />
 
 ### 5. Analytics Dashboard
 - View matching statistics
 - Track performance metrics
 - Analyze trends and patterns
+<img width="1860" height="933" alt="Screenshot 2025-08-02 165915" src="https://github.com/user-attachments/assets/32309926-eb37-4208-a62c-20eadc135634" />
 
 
 ## 🛠️ Technical Details
@@ -162,3 +166,4 @@ For support, please open an issue on GitHub or contact the development team.
 ---
 
 Built using Python, Streamlit, and AI
+
