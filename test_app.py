@@ -7,3 +7,4 @@ if st.button("Click me"):
     st.success("✅ Button clicked successfully!")
     
 st.sidebar.write("Sidebar is working too!")
+
