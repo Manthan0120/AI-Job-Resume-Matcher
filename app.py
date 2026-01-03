@@ -237,27 +237,44 @@ class ResumeJobMatcherApp:
         for message in st.session_state.messages:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+                # Show sources if available
+                if message.get("sources"):
+                    with st.expander("📚 Sources"):
+                        for src in message["sources"]:
+                            st.write(f"• {src.get('type')}: {src.get('filename') or src.get('title')}")
         
         # Chat input
         if prompt := st.chat_input("Ask me anything about resume-job matching..."):
-            # Add user message to chat history
+            # Add user message
             st.session_state.messages.append({"role": "user", "content": prompt})
             
-            # Display user message
             with st.chat_message("user"):
                 st.markdown(prompt)
             
-            # Get assistant response
+            # Get assistant response with context retrieval
             with st.chat_message("assistant"):
-                with st.spinner("Thinking..."):
-                    response = st.session_state.matcher.get_chat_response(
-                        prompt, 
-                        context="Resume-job matching application"
+                with st.spinner("Searching documents and generating response..."):
+                    result = st.session_state.matcher.get_chat_response(
+                        prompt,
+                        chat_history=st.session_state.messages
                     )
-                st.markdown(response)
+                    
+                    response = result["answer"]
+                    st.markdown(response)
+                    
+                    # Show sources if context was used
+                    if result["context_used"]:
+                        with st.expander("📚 Sources"):
+                            for src in result["source_documents"]:
+                                st.write(f"• {src.get('type')}: {src.get('filename') or src.get('title')}")
             
-            # Add assistant response to chat history
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # Add assistant response with sources
+            st.session_state.messages.append({
+                "role": "assistant",
+                "content": response,
+                "sources": result.get("source_documents", [])
+            })
+
     
     def analytics_dashboard(self):
         """Analytics and insights dashboard"""

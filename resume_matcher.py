@@ -181,19 +181,58 @@ class ResumeJobMatcher:
                 "overall_assessment": "Analysis failed due to technical error"
             }
     
-    def get_chat_response(self, question: str, context: str = "") -> str:
-        """Get conversational response about matches"""
+    def get_chat_response(self, question: str, chat_history: List = []) -> Dict:
+        """Get conversational response with context retrieval"""
         try:
-            prompt = f"""
-            Context: {context}
+            # Retrieve relevant documents from vector store
+            relevant_docs = self.vector_store.similarity_search(
+                query=question,
+                k=5  # Get top 5 relevant chunks
+            )
             
-            User Question: {question}
+            # Build context from retrieved documents
+            context_parts = []
+            for doc, score in relevant_docs:
+                doc_type = doc.metadata.get('type', 'unknown')
+                if doc_type == 'resume':
+                    context_parts.append(f"Resume ({doc.metadata.get('filename')}): {doc.page_content}")
+                elif doc_type == 'job':
+                    context_parts.append(f"Job ({doc.metadata.get('title')}): {doc.page_content}")
             
-            Please provide a helpful response about resume-job matching based on the context provided.
-            """
+            context = "\n\n".join(context_parts) if context_parts else "No relevant documents found."
             
-            response = self.llm.predict(prompt)
-            return response
-        except Exception as e:
-            return f"Sorry, I encountered an error: {str(e)}"
+            # Format chat history for context
+            history_text = ""
+            for msg in chat_history[-3:]:  # Last 3 exchanges
+                history_text += f"{msg['role']}: {msg['content']}\n"
+            
+            # Create enhanced prompt with retrieved context
+            prompt = f"""You are an AI assistant for a resume-job matching application. 
+    Use the following context from the database to answer the user's question accurately.
     
+    Retrieved Context:
+    {context}
+    
+    Chat History:
+    {history_text}
+    
+    User Question: {question}
+    
+    Provide a helpful, accurate response based on the retrieved information. If the context doesn't contain relevant information, say so."""
+    
+            response = self.llm.predict(prompt)
+            
+            return {
+                "answer": response,
+                "source_documents": [doc.metadata for doc, _ in relevant_docs],
+                "context_used": len(relevant_docs) > 0
+            }
+            
+        except Exception as e:
+            return {
+                "answer": f"Sorry, I encountered an error: {str(e)}",
+                "source_documents": [],
+                "context_used": False
+            }
+    
+        
