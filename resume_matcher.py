@@ -11,7 +11,6 @@ class ResumeJobMatcher:
         self.config = config
         self.vector_store = vector_store
         self.llm = ChatOpenAI(
-            temperature=0.1,
             model_name=config.LLM_MODEL,
             openai_api_key=config.OPENAI_API_KEY
         )
