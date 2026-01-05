@@ -107,27 +107,77 @@ class ResumeJobMatcherApp:
         """Process uploaded jobs file"""
         try:
             df = pd.read_csv(jobs_file)
-            st.write("Preview of jobs data:")
+            
+            # Display CSV preview and column names
+            st.write("**Preview of jobs data:**")
             st.dataframe(df.head())
+            st.write(f"**Columns found:** {', '.join(df.columns.tolist())}")
             
             jobs = []
-            for index, row in df.iterrows():
-                job_desc = f"{row.get('title', '')} {row.get('description', '')} {row.get('requirements', '')}"
-                jobs.append({
-                    'id': f"job_{index}",
-                    'title': row.get('title', 'Unknown'),
-                    'company': row.get('company', 'Unknown'),
-                    'content': job_desc,
-                    'type': 'job'
-                })
+            skipped = 0
             
+            for index, row in df.iterrows():
+                # Try to extract job content from various possible column names
+                title = (row.get('title') or row.get('job_title') or 
+                        row.get('Title') or row.get('Job Title') or 
+                        row.get('position') or 'Unknown Position')
+                
+                description = (row.get('description') or row.get('job_description') or 
+                              row.get('Description') or row.get('Job Description') or 
+                              row.get('details') or '')
+                
+                requirements = (row.get('requirements') or row.get('qualifications') or 
+                               row.get('Requirements') or row.get('Qualifications') or 
+                               row.get('skills') or row.get('Skills') or '')
+                
+                company = (row.get('company') or row.get('Company') or 
+                          row.get('employer') or row.get('Employer') or 'Unknown Company')
+                
+                # Combine all text fields
+                job_desc = f"Title: {title}\n\nDescription: {description}\n\nRequirements: {requirements}"
+                
+                # Validate that content is not empty
+                if job_desc.strip() and len(job_desc.strip()) > 20:
+                    jobs.append({
+                        'id': f"job_{index}",
+                        'title': str(title),
+                        'company': str(company),
+                        'content': job_desc.strip(),
+                        'type': 'job'
+                    })
+                else:
+                    skipped += 1
+                    st.warning(f"⚠️ Skipped row {index + 1}: Insufficient content")
+            
+            # Display processing results
+            st.write(f"**Processed:** {len(jobs)} jobs")
+            if skipped > 0:
+                st.warning(f"**Skipped:** {skipped} rows due to insufficient content")
+            
+            # Show sample of what will be added
             if jobs:
-                with st.spinner("Adding jobs to vector store..."):
+                with st.expander("Preview first job content"):
+                    st.text(jobs[0]['content'][:500] + "...")
+            
+            # Add to vector store
+            if jobs:
+                with st.spinner(f"Adding {len(jobs)} jobs to vector store..."):
                     st.session_state.vector_store.add_documents(jobs)
-                st.success(f"Successfully processed {len(jobs)} job descriptions!")
+                st.success(f"✅ Successfully processed {len(jobs)} job descriptions!")
+            else:
+                st.error("❌ No valid jobs found in CSV. Please check your file format and column names.")
+                st.info("""
+                Expected column names (case-insensitive):
+                - **title** or **job_title** or **position**
+                - **description** or **job_description** or **details**
+                - **requirements** or **qualifications** or **skills**
+                - **company** or **employer** (optional)
+                """)
                 
         except Exception as e:
-            st.error(f"Error processing jobs file: {e}")
+            st.error(f"❌ Error processing jobs file: {e}")
+            st.exception(e)
+
     
     def resume_to_jobs_matching(self):
         """Resume to jobs matching interface"""
@@ -280,19 +330,57 @@ class ResumeJobMatcherApp:
         """Analytics and insights dashboard"""
         st.header("📊 Analytics Dashboard")
         
+        # Get metrics from vector store
+        metrics = self.get_dashboard_metrics()
+        
+        # Display metrics
         col1, col2, col3 = st.columns(3)
         
         with col1:
-            st.metric("Total Resumes", "N/A", help="Connect to database for live metrics")
+            st.metric(
+                "Total Resumes", 
+                metrics['total_resumes'],
+                help="Number of resumes in the database"
+            )
         
         with col2:
-            st.metric("Total Jobs", "N/A", help="Connect to database for live metrics")
+            st.metric(
+                "Total Jobs", 
+                metrics['total_jobs'],
+                help="Number of job descriptions in the database"
+            )
         
         with col3:
-            st.metric("Avg Match Accuracy", "90%", help="Based on user feedback")
+            st.metric(
+                "Total Documents", 
+                metrics['total_documents'],
+                help="Total chunks stored in vector database"
+            )
+        
+        # Show data status
+        if metrics['total_documents'] == 0:
+            st.warning("⚠️ No data loaded yet. Please upload resumes and job descriptions in the Data Management section.")
+        else:
+            st.success(f"✅ Vector store contains {metrics['total_documents']} document chunks")
+        
+        # Additional metrics
+        st.subheader("📈 Database Statistics")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if metrics['total_resumes'] > 0:
+                avg_chunks_per_resume = metrics['total_documents'] / max(metrics['total_resumes'], 1)
+                st.metric("Avg Chunks per Resume", f"{avg_chunks_per_resume:.1f}")
+        
+        with col2:
+            if metrics['total_jobs'] > 0:
+                avg_chunks_per_job = metrics['total_documents'] / max(metrics['total_jobs'], 1)
+                st.metric("Avg Chunks per Job", f"{avg_chunks_per_job:.1f}")
         
         st.subheader("Match Distribution")
         st.info("Analytics features would show match score distributions, popular skills, and matching trends.")
+
                 
     def get_dashboard_metrics(self):
         """Get metrics for dashboard"""
@@ -302,29 +390,49 @@ class ResumeJobMatcherApp:
             'total_documents': 0
         }
         
-        if st.session_state.vector_store and st.session_state.vector_store.vectorstore:
-            try:
-                # Get collection info from ChromaDB
-                collection = st.session_state.vector_store.vectorstore._collection
-                
-                # Count documents by type
-                all_docs = collection.get()
-                    
-                if all_docs and 'metadatas' in all_docs:
-                    for metadata in all_docs['metadatas']:
-                        doc_type = metadata.get('type', '')
-                        if doc_type == 'resume':
-                            metrics['total_resumes'] += 1
-                        elif doc_type == 'job':
-                            metrics['total_jobs'] += 1
-                    
-                    metrics['total_documents'] = len(all_docs['metadatas'])
+        if not (st.session_state.vector_store and 
+                st.session_state.vector_store.vectorstore):
+            return metrics
+        
+        try:
+            # Get all documents from ChromaDB
+            all_docs = st.session_state.vector_store.vectorstore.get(
+                include=['metadatas']
+            )
             
-            except Exception as e:
-                st.error(f"Error getting metrics: {e}")
+            if all_docs and 'metadatas' in all_docs:
+                metadatas = all_docs['metadatas']
+                metrics['total_documents'] = len(metadatas)
+                
+                # Count UNIQUE resumes and jobs by their IDs
+                unique_resume_ids = set()
+                unique_job_ids = set()
+                
+                for metadata in metadatas:
+                    doc_type = metadata.get('type', '')
+                    doc_id = metadata.get('id', '')
+                    
+                    if doc_id:  # Only count if ID exists
+                        if doc_type == 'resume':
+                            unique_resume_ids.add(doc_id)
+                        elif doc_type == 'job':
+                            unique_job_ids.add(doc_id)
+                
+                metrics['total_resumes'] = len(unique_resume_ids)
+                metrics['total_jobs'] = len(unique_job_ids)
+                
+                # Debug output
+                st.sidebar.write(f"Debug: {metrics['total_documents']} chunks, "
+                               f"{len(unique_resume_ids)} unique resumes, "
+                               f"{len(unique_job_ids)} unique jobs")
+                
+        except Exception as e:
+            st.error(f"⚠️ Error getting metrics: {str(e)}")
         
         return metrics
-
+    
+        
+        
 
     
     def run(self):
