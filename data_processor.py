@@ -2,7 +2,7 @@
 import os
 import re
 from typing import List, Dict
-import PyPDF2
+from pypdf import PdfReader
 from docx import Document
 import pandas as pd
 
