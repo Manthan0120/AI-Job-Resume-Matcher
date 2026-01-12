@@ -84,7 +84,7 @@ streamlit run app.py
 - View matching statistics
 - Track performance metrics
 - Analyze trends and patterns
-<img width="1860" height="933" alt="Screenshot 2025-08-02 165915" src="https://github.com/user-attachments/assets/32309926-eb37-4208-a62c-20eadc135634" />
+<img width="1919" height="928" alt="Screenshot 2026-01-11 213722" src="https://github.com/user-attachments/assets/b5b5e0a4-15b8-4417-9ae1-1c6256fe9bf4" />
 
 
 ## 🛠️ Technical Details
@@ -166,4 +166,5 @@ For support, please open an issue on GitHub or contact the development team.
 ---
 
 Built using Python, Streamlit, and AI
+
 
