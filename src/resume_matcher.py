@@ -1,7 +1,5 @@
 # resume_matcher.py
 from langchain_openai import ChatOpenAI
-from langchain.chains import ConversationalRetrievalChain
-from langchain.memory import ConversationBufferMemory
 from langchain.prompts import PromptTemplate
 from typing import List, Dict, Tuple
 import json
@@ -13,10 +11,6 @@ class ResumeJobMatcher:
         self.llm = ChatOpenAI(
             model_name=config.LLM_MODEL,
             openai_api_key=config.OPENAI_API_KEY
-        )
-        self.memory = ConversationBufferMemory(
-            memory_key="chat_history",
-            return_messages=True
         )
         self.setup_prompts()
     
