@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  /* Signal-alignment palette: dark technical surface, one accent
+     that is FUNCTIONAL (match strength) not decorative. */
+  --color-bg: #0B0E14;
+  --color-surface: #12161F;
+  --color-surface-raised: #171C28;
+  --color-border: #232838;
+  --color-text: #E7EAF2;
+  --color-text-dim: #8A93A6;
+  --color-text-faint: #4F5769;
+
+  /* match-strength gradient: amber (weak signal) -> mint (locked signal) */
+  --color-signal-low: #FFB454;
+  --color-signal-mid: #7C9CFF;
+  --color-signal-high: #37E8A0;
+  --color-danger: #FF6B6B;
+
+  --font-display: 'Space Mono', ui-monospace, monospace;
+  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: var(--color-signal-high);
+  color: var(--color-bg);
+}
+
+/* thin scrollbar, matches the technical register */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: var(--color-bg); }
+::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 4px; }

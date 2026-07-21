@@ -1,0 +1,6 @@
+title,company,description,requirements
+Backend Software Engineer,DataWorks Inc.,"We are looking for a Backend Software Engineer to build and scale our REST APIs and data pipelines.","Python, FastAPI or Django, PostgreSQL, Docker, AWS, 3+ years experience"
+Data Engineer,Cloudify Systems,"Join our data platform team to design and maintain ETL pipelines that power analytics dashboards.","Python, Pandas, SQL, Airflow, AWS, experience with large-scale data processing"
+Frontend Developer,PixelCraft Studio,"Build responsive, accessible user interfaces for our SaaS product using modern JavaScript frameworks.","JavaScript, React, TypeScript, CSS, REST API integration, 2+ years experience"
+Machine Learning Engineer,NeuralEdge AI,"Develop and deploy machine learning models for our recommendation engine.","Python, scikit-learn, TensorFlow or PyTorch, model deployment, AWS or GCP"
+DevOps Engineer,CloudScale Technologies,"Own our CI/CD pipelines and cloud infrastructure to support rapid, reliable deployments.","Docker, Kubernetes, AWS, Terraform, CI/CD, Linux administration"

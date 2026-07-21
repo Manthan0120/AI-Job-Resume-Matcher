@@ -1,0 +1,24 @@
+Jane Doe
+Software Engineer
+
+Summary
+Backend-focused software engineer with 4 years of experience building scalable web
+applications and APIs using Python. Comfortable working across the stack, with a
+strong focus on data pipelines and cloud infrastructure.
+
+Skills
+Python, Django, Flask, FastAPI, PostgreSQL, Docker, AWS (EC2, S3, Lambda),
+REST APIs, Git, CI/CD, Pytest, Pandas, SQL
+
+Experience
+Software Engineer, Acme Analytics (2022 - Present)
+- Built and maintained REST APIs serving over 1M requests/day using FastAPI.
+- Designed data ingestion pipelines with Pandas and PostgreSQL.
+- Deployed and monitored services on AWS using Docker and CI/CD pipelines.
+
+Junior Software Engineer, Bright Software Co. (2020 - 2022)
+- Developed internal tooling with Django and Flask.
+- Wrote automated tests with Pytest, improving code coverage from 40% to 85%.
+
+Education
+B.S. in Computer Science, State University (2020)
