@@ -1,4 +1,5 @@
 from __future__ import annotations
+import re
 from typing import List, Optional, Annotated, Literal
 from datetime import date
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -105,3 +106,36 @@ class Job(BaseModel):
         if not v or not v.strip():
             raise ValueError("Job content cannot be blank")
         return v
+
+
+class BulletRewrite(BaseModel):
+    original: str
+    rewritten: str
+
+
+class MatchConfidence(BaseModel):
+    level: Literal["high", "moderate", "low"]
+    reason: str
+
+
+class TopMatch(BaseModel):
+    job_id: Optional[str] = None
+    title: NonEmptyStr
+    company: str = "Unknown"
+    match_percentage: int = Field(ge=0, le=100)
+    matching_skills: List[str] = Field(default_factory=list)
+    missing_skills: List[str] = Field(default_factory=list)
+    verified_gaps: List[str] = Field(default_factory=list)
+    confidence: Optional[MatchConfidence] = None
+    recommendations: List[str] = Field(default_factory=list)
+
+
+class AgentMatchResult(BaseModel):
+    """Validates CareerAgent.run()'s final output before it reaches the API
+    response. match_percentage is bounded 0-100 here even though the agent
+    computes it deterministically -- this is a backstop against a future bug
+    or an LLM-influenced adjustment pushing it out of range, not a claim that
+    the LLM is untrusted input here."""
+    top_matches: List[TopMatch] = Field(default_factory=list)
+    suggested_bullet_rewrites: List[BulletRewrite] = Field(default_factory=list)
+    overall_assessment: str = ""

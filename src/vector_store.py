@@ -1,5 +1,7 @@
 # vector_store.py
 import chromadb
+import hashlib
+from collections import OrderedDict
 from chromadb.config import Settings
 from langchain.vectorstores import Chroma
 from langchain.embeddings.openai import OpenAIEmbeddings
@@ -8,6 +10,12 @@ from langchain.schema import Document
 from typing import List, Dict
 import numpy as np
 from sklearn.metrics.pairwise import cosine_similarity
+
+# Bound on how many distinct texts' embeddings get cached per VectorStore
+# instance -- prevents unbounded memory growth on a long-lived singleton
+# (backend/main.py caches one VectorStore per process) without needing a
+# real cache eviction library for what's a small, in-process optimization.
+EMBEDDING_CACHE_MAX_ENTRIES = 512
 
 class VectorStore:
     def __init__(self, config):
@@ -21,7 +29,25 @@ class VectorStore:
             chunk_overlap=200
         )
         self.vectorstore = None
+        self._embedding_cache = OrderedDict()
         self.initialize_vectorstore()
+
+    def get_embedding(self, text: str) -> List[float]:
+        """Embed text, reusing a cached vector if this exact text was already
+        embedded by this instance. CareerAgent calls calculate_cosine_similarity
+        once per resume/job pair in a run, and the resume side is the same text
+        every time -- without this, that's N redundant embedding calls for the
+        same resume across N job comparisons in a single run."""
+        key = hashlib.sha256(text.encode("utf-8")).hexdigest()
+        if key in self._embedding_cache:
+            self._embedding_cache.move_to_end(key)
+            return self._embedding_cache[key]
+
+        vector = self.embeddings.embed_query(text)
+        self._embedding_cache[key] = vector
+        if len(self._embedding_cache) > EMBEDDING_CACHE_MAX_ENTRIES:
+            self._embedding_cache.popitem(last=False)
+        return vector
     
     def initialize_vectorstore(self):
         """Initialize ChromaDB vector store"""
@@ -135,9 +161,9 @@ class VectorStore:
     def calculate_cosine_similarity(self, text1: str, text2: str) -> float:
         """Calculate cosine similarity between two texts"""
         try:
-            # Get embeddings for both texts
-            embedding1 = self.embeddings.embed_query(text1)
-            embedding2 = self.embeddings.embed_query(text2)
+            # Get embeddings for both texts (cached -- see get_embedding)
+            embedding1 = self.get_embedding(text1)
+            embedding2 = self.get_embedding(text2)
             
             # Calculate cosine similarity
             similarity = cosine_similarity(
