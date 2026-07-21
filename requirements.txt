@@ -9,7 +9,6 @@ langchain-core==0.3.86
 langchain-community==0.3.21
 langchain-openai==0.3.35
 langchain-chroma==0.2.2
-langgraph==1.0.1
 
 chromadb==0.4.24
 sentence-transformers>=2.6.1

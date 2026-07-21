@@ -2,7 +2,13 @@ import { ChevronDown } from "lucide-react";
 import { useState } from "react";
 import SignalRing from "./SignalRing";
 
-export default function MatchCard({ title, subtitle, pct, matching = [], missing = [], recommendations = [], assessment }) {
+const CONFIDENCE_STYLE = {
+  high: "text-[var(--color-signal-high)] border-[var(--color-signal-high)]/40",
+  moderate: "text-[var(--color-signal-mid)] border-[var(--color-signal-mid)]/40",
+  low: "text-[var(--color-danger)] border-[var(--color-danger)]/40",
+};
+
+export default function MatchCard({ title, subtitle, pct, matching = [], missing = [], recommendations = [], assessment, confidence }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-lg overflow-hidden">
@@ -12,7 +18,17 @@ export default function MatchCard({ title, subtitle, pct, matching = [], missing
       >
         <SignalRing pct={pct} size={48} />
         <div className="flex-1 min-w-0">
-          <p className="font-medium truncate">{title}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-medium truncate">{title}</p>
+            {confidence && (
+              <span
+                title={confidence.reason}
+                className={`shrink-0 font-[var(--font-mono)] text-[10px] uppercase tracking-widest border rounded-full px-2 py-0.5 ${CONFIDENCE_STYLE[confidence.level] || ""}`}
+              >
+                {confidence.level} confidence
+              </span>
+            )}
+          </div>
           {subtitle && <p className="text-sm text-[var(--color-text-dim)] truncate">{subtitle}</p>}
         </div>
         <ChevronDown size={16} className={`text-[var(--color-text-faint)] transition-transform ${open ? "rotate-180" : ""}`} />
@@ -42,6 +58,11 @@ export default function MatchCard({ title, subtitle, pct, matching = [], missing
           )}
           {assessment && (
             <p className="col-span-2 text-[var(--color-text-dim)] leading-relaxed">{assessment}</p>
+          )}
+          {confidence && (
+            <p className="col-span-2 text-[var(--color-text-faint)] text-xs leading-relaxed">
+              {confidence.reason}
+            </p>
           )}
         </div>
       )}

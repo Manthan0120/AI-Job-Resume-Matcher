@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Sparkles, PenLine } from "lucide-react";
+import { Sparkles, PenLine, ListTree } from "lucide-react";
 import { api } from "../api";
-import SignalRing from "../components/SignalRing";
 import MatchCard from "../components/MatchCard";
 
 export default function AgenticMatch() {
@@ -33,8 +32,10 @@ export default function AgenticMatch() {
         <div>
           <h1 className="text-2xl font-semibold">Agentic Career Match</h1>
           <p className="text-[var(--color-text-dim)] text-sm mt-1">
-            The model plans its own tool calls — search, extraction, gap verification, bullet rewrites —
-            looping until it's confident, rather than following one fixed sequence.
+            Deterministic-first: skill extraction, comparison, and similarity run in plain code with
+            no LLM call. The model is only invoked as a narrow escape hatch — when extraction looks
+            too thin, or when keyword overlap is low but semantic similarity is high — and every time
+            it fires, why is shown below.
           </p>
         </div>
       </header>
@@ -67,8 +68,8 @@ export default function AgenticMatch() {
 
       {loading && (
         <p className="text-xs text-[var(--color-text-faint)] mt-3 font-[var(--font-mono)]">
-          watch your backend terminal — you'll see search_jobs, extract_skills, compare_skills,
-          verify_claim being called as the model decides its own next step.
+          running skill extraction, comparison, and similarity scoring — the reasoning trace below
+          will show whether any LLM escape hatch fired for this resume.
         </p>
       )}
 
@@ -80,6 +81,26 @@ export default function AgenticMatch() {
             Agent returned unstructured output
           </p>
           {result.raw_output}
+        </div>
+      )}
+
+      {result?._verification?.flagged_matches?.length > 0 && (
+        <div className="mt-6 bg-[var(--color-surface)] border border-[var(--color-danger)] rounded-md p-4 text-sm">
+          <p className="text-[10px] uppercase tracking-widest text-[var(--color-danger)] font-[var(--font-mono)] mb-2">
+            Flagged for review
+          </p>
+          <p className="text-[var(--color-text-dim)]">
+            The agent's own compare_skills tool computed at most{" "}
+            <strong className="text-[var(--color-text)]">
+              {result._verification.max_deterministic_skill_overlap_pct}%
+            </strong>{" "}
+            real skill overlap this run, but{" "}
+            <strong className="text-[var(--color-text)]">
+              {result._verification.flagged_matches.join(", ")}
+            </strong>{" "}
+            reported a match percentage well above that. Treat those numbers with extra scrutiny —
+            this checks match_percentage only, not the other fields below.
+          </p>
         </div>
       )}
 
@@ -97,8 +118,29 @@ export default function AgenticMatch() {
               matching={m.matching_skills}
               missing={[...(m.missing_skills || []), ...(m.verified_gaps || [])]}
               recommendations={m.recommendations}
+              confidence={m.confidence}
             />
           ))}
+        </div>
+      )}
+
+      {result?._reasoning_trace?.length > 0 && (
+        <div className="mt-8">
+          <div className="flex items-center gap-2 mb-3">
+            <ListTree size={14} className="text-[var(--color-text-dim)]" />
+            <h3 className="font-[var(--font-mono)] text-xs uppercase tracking-widest text-[var(--color-text-dim)]">
+              Reasoning Trace
+            </h3>
+          </div>
+          <div className="bg-[var(--color-surface)] border border-[var(--color-border)] rounded-md p-4">
+            <ol className="space-y-1.5 text-xs font-[var(--font-mono)] text-[var(--color-text-dim)]">
+              {result._reasoning_trace.map((line, i) => (
+                <li key={i}>
+                  <span className="text-[var(--color-text-faint)]">{i + 1}.</span> {line}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       )}
 
