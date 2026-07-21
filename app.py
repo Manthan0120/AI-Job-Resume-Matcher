@@ -3,10 +3,10 @@ import matplotlib.pyplot as plt
 import streamlit as st
 import pandas as pd
 import os
-from config import Config
-from data_processor import DataProcessor
-from vector_store import VectorStore
-from resume_matcher import ResumeJobMatcher
+from src.config import Config
+from src.data_processor import DataProcessor
+from src.vector_store import VectorStore
+from src.resume_matcher import ResumeJobMatcher
 import json
 
 # Page configuration
